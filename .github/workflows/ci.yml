@@ -29,3 +29,19 @@ jobs:
           echo "Build completed successfully."
           echo "Commit: $GITHUB_SHA"
           echo "Timestamp: $(date -u)"
+
+      - name: Send Slack Notification
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS="SUCCESS"
+          else
+            STATUS="FAILED"
+          fi
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            --data "{\"text\":\"CI Pipeline: $STATUS\\nRepository: $GITHUB_REPOSITORY\\nBranch: $GITHUB_REF_NAME\\nCommit: $GITHUB_SHA\"}" \
+            "$SLACK_WEBHOOK_URL"
